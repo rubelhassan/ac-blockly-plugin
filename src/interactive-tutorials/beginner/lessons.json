@@ -1,0 +1,181 @@
+[
+  {
+    "id": "easy-lesson-01",
+    "title": "First Steps: Moving Around",
+    "summary": "Learn to navigate the workspace using W and S keys",
+    "estimatedMinutes": 5,
+    "unlocks": {
+      "blocks": ["text_print"],
+      "keys": ["w", "s", "e", "escape"]
+    },
+    "preconditions": {
+      "blocks": [],
+      "keys": []
+    },
+    "steps": [
+      {
+        "stepId": "step-01-intro",
+        "instruction": "Welcome to Easy Mode! You'll learn block programming step by step. Press W to move up or S to move down to explore the workspace.",
+        "screenReaderHint": "Use W key to move cursor up, S key to move cursor down. Focus is currently on the workspace.",
+        "successCriterion": {
+          "type": "keyPressed",
+          "params": { "keys": ["w", "s"], "count": 3 }
+        }
+      },
+      {
+        "stepId": "step-01-find-block",
+        "instruction": "Great! Now navigate to the print block. It's the only block available right now. Use W and S to find it.",
+        "screenReaderHint": "Print block allows you to display text messages. Navigate with W and S until you hear 'print block'.",
+        "successCriterion": {
+          "type": "blockFocused",
+          "params": { "blockType": "text_print" }
+        }
+      },
+      {
+        "stepId": "step-01-edit-mode",
+        "instruction": "Perfect! You found the print block. Now press E to enter Edit mode so you can change what it says.",
+        "screenReaderHint": "Press E to toggle Edit mode. Edit mode lets you modify blocks and connect them together.",
+        "successCriterion": {
+          "type": "editModeActive",
+          "params": {}
+        }
+      },
+      {
+        "stepId": "step-01-exit-edit",
+        "instruction": "Good! You're now in Edit mode. Press Escape to exit Edit mode and return to Navigation mode.",
+        "screenReaderHint": "Press Escape to leave Edit mode and return to Navigation mode.",
+        "successCriterion": {
+          "type": "editModeInactive",
+          "params": {}
+        }
+      },
+      {
+        "stepId": "step-01-complete",
+        "instruction": "Excellent! You've learned the basics: W and S navigate, E enters Edit mode, and Escape exits. You're ready for the next lesson!",
+        "screenReaderHint": "Lesson complete. You can now navigate the workspace and toggle Edit mode. Press Enter or click Continue to proceed.",
+        "successCriterion": {
+          "type": "userConfirmation",
+          "params": {}
+        }
+      }
+    ],
+    "hints": [
+      "Remember: W moves up, S moves down",
+      "The print block is in the toolbox. Use W/S to find it",
+      "Press E when you're on a block to enter Edit mode",
+      "Escape always returns you to the previous state"
+    ]
+  },
+  {
+    "id": "easy-lesson-02",
+    "title": "Using the Print Block",
+    "summary": "Create your first program with the print block",
+    "estimatedMinutes": 8,
+    "unlocks": {
+      "blocks": ["text"],
+      "keys": ["t"]
+    },
+    "preconditions": {
+      "blocks": ["text_print"],
+      "keys": ["w", "s", "e", "escape"]
+    },
+    "steps": [],
+    "hints": []
+  },
+  {
+    "id": "easy-lesson-03",
+    "title": "Adding Text",
+    "summary": "Learn to use text blocks inside print blocks",
+    "estimatedMinutes": 10,
+    "unlocks": {
+      "blocks": ["text_join"],
+      "keys": ["a", "d"]
+    },
+    "preconditions": {
+      "blocks": ["text_print", "text"],
+      "keys": ["w", "s", "e", "t", "escape"]
+    },
+    "steps": [],
+    "hints": []
+  },
+  {
+    "id": "easy-lesson-04",
+    "title": "Numbers and Math",
+    "summary": "Work with numbers and basic calculations",
+    "estimatedMinutes": 12,
+    "unlocks": {
+      "blocks": ["math_number", "math_arithmetic"],
+      "keys": ["f"]
+    },
+    "preconditions": {
+      "blocks": ["text_print", "text", "text_join"],
+      "keys": ["w", "s", "a", "d", "e", "t", "escape"]
+    },
+    "steps": [],
+    "hints": []
+  },
+  {
+    "id": "easy-lesson-05",
+    "title": "Repeating Actions",
+    "summary": "Use loops to repeat code multiple times",
+    "estimatedMinutes": 15,
+    "unlocks": {
+      "blocks": ["controls_repeat_ext"],
+      "keys": ["q"]
+    },
+    "preconditions": {
+      "blocks": ["text_print", "text", "text_join", "math_number", "math_arithmetic"],
+      "keys": ["w", "s", "a", "d", "e", "f", "t", "escape"]
+    },
+    "steps": [],
+    "hints": []
+  },
+  {
+    "id": "easy-lesson-06",
+    "title": "Making Decisions",
+    "summary": "Learn if statements and logic blocks",
+    "estimatedMinutes": 15,
+    "unlocks": {
+      "blocks": ["controls_if", "logic_compare", "logic_boolean"],
+      "keys": ["shift_r"]
+    },
+    "preconditions": {
+      "blocks": ["text_print", "text", "math_number", "math_arithmetic", "controls_repeat_ext"],
+      "keys": ["w", "s", "a", "d", "e", "f", "q", "t", "escape"]
+    },
+    "steps": [],
+    "hints": []
+  },
+  {
+    "id": "easy-lesson-07",
+    "title": "Storing Information",
+    "summary": "Use variables to remember values",
+    "estimatedMinutes": 12,
+    "unlocks": {
+      "blocks": ["variables_set", "variables_get"],
+      "keys": ["shift_o", "shift_h"]
+    },
+    "preconditions": {
+      "blocks": ["text_print", "text", "math_number", "math_arithmetic", "controls_repeat_ext", "controls_if", "logic_compare", "logic_boolean"],
+      "keys": ["w", "s", "a", "d", "e", "f", "q", "t", "shift_r", "escape"]
+    },
+    "steps": [],
+    "hints": []
+  },
+  {
+    "id": "easy-lesson-08",
+    "title": "Text Code Preview",
+    "summary": "See what your blocks look like as text code",
+    "estimatedMinutes": 10,
+    "unlocks": {
+      "blocks": [],
+      "keys": []
+    },
+    "preconditions": {
+      "blocks": ["text_print", "text", "math_number", "math_arithmetic", "controls_repeat_ext", "controls_if", "logic_compare", "logic_boolean", "variables_set", "variables_get"],
+      "keys": ["w", "s", "a", "d", "e", "f", "q", "t", "shift_r", "shift_o", "shift_h", "escape"]
+    },
+    "steps": [],
+    "hints": []
+  }
+]

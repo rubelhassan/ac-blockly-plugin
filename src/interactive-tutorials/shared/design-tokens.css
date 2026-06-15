@@ -1,0 +1,173 @@
+/**
+ * Design tokens for interactive tutorials
+ * WCAG AA compliant colors for light and dark modes
+ * Do NOT introduce per-mode color overrides
+ */
+
+:root {
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+
+  /* Typography */
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-family-mono: 'Courier New', Courier, monospace;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  --line-height-tight: 1.25;
+  --line-height-base: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* Focus indicators */
+  --focus-outline-width: 3px;
+  --focus-outline-offset: 2px;
+  --focus-outline-style: solid;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 350ms ease;
+
+  /* Z-index layers */
+  --z-base: 1;
+  --z-dropdown: 100;
+  --z-modal: 500;
+  --z-toast: 600;
+  --z-skip-link: 1000;
+}
+
+/* Light mode (default) */
+:root,
+[data-theme="light"] {
+  /* Base colors */
+  --color-background: #ffffff;
+  --color-surface: #f8f9fa;
+  --color-surface-elevated: #ffffff;
+  --color-text-primary: #212529;
+  --color-text-secondary: #6c757d;
+  --color-text-tertiary: #adb5bd;
+
+  /* Interactive states */
+  --color-focus: #0066cc;
+  --color-focus-background: #e6f2ff;
+  --color-hover-background: #e9ecef;
+  --color-active-background: #dee2e6;
+
+  /* Status colors (WCAG AA compliant) */
+  --color-success: #157347;
+  --color-success-background: #d1e7dd;
+  --color-warning: #9a6700;
+  --color-warning-background: #fff3cd;
+  --color-error: #b02a37;
+  --color-error-background: #f8d7da;
+  --color-info: #055160;
+  --color-info-background: #cff4fc;
+
+  /* Locked/disabled states */
+  --color-locked: #adb5bd;
+  --color-locked-background: #e9ecef;
+  --color-disabled-text: #6c757d;
+
+  /* Block category colors (aligned with Blockly defaults, WCAG AA contrast) */
+  --color-category-logic: #4a4a4a;
+  --color-category-loops: #2a7b3c;
+  --color-category-math: #3d5a99;
+  --color-category-text: #4a8c6f;
+  --color-category-lists: #745ba5;
+  --color-category-variables: #8c4a4a;
+  --color-category-functions: #9a6700;
+
+  /* Borders */
+  --color-border: #dee2e6;
+  --color-border-strong: #adb5bd;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-background: #1a1d23;
+    --color-surface: #2b2f38;
+    --color-surface-elevated: #363a45;
+    --color-text-primary: #e9ecef;
+    --color-text-secondary: #adb5bd;
+    --color-text-tertiary: #6c757d;
+
+    --color-focus: #66b3ff;
+    --color-focus-background: #1a3d5c;
+    --color-hover-background: #363a45;
+    --color-active-background: #414652;
+
+    /* Status colors adjusted for dark mode */
+    --color-success: #75b798;
+    --color-success-background: #1a3d2b;
+    --color-warning: #ffcc66;
+    --color-warning-background: #3d2f1a;
+    --color-error: #e57373;
+    --color-error-background: #4a1f24;
+    --color-info: #66d9ef;
+    --color-info-background: #1a3d47;
+
+    --color-locked: #6c757d;
+    --color-locked-background: #363a45;
+    --color-disabled-text: #adb5bd;
+
+    /* Block categories adjusted for dark mode contrast */
+    --color-category-logic: #b8b8b8;
+    --color-category-loops: #6fcc7d;
+    --color-category-math: #7d9ed9;
+    --color-category-text: #7dccaa;
+    --color-category-lists: #b399d9;
+    --color-category-variables: #d99999;
+    --color-category-functions: #ffcc66;
+
+    --color-border: #414652;
+    --color-border-strong: #6c757d;
+  }
+}
+
+[data-theme="dark"] {
+  --color-background: #1a1d23;
+  --color-surface: #2b2f38;
+  --color-surface-elevated: #363a45;
+  --color-text-primary: #e9ecef;
+  --color-text-secondary: #adb5bd;
+  --color-text-tertiary: #6c757d;
+  --color-focus: #66b3ff;
+  --color-focus-background: #1a3d5c;
+  --color-hover-background: #363a45;
+  --color-active-background: #414652;
+  --color-success: #75b798;
+  --color-success-background: #1a3d2b;
+  --color-warning: #ffcc66;
+  --color-warning-background: #3d2f1a;
+  --color-error: #e57373;
+  --color-error-background: #4a1f24;
+  --color-info: #66d9ef;
+  --color-info-background: #1a3d47;
+  --color-locked: #6c757d;
+  --color-locked-background: #363a45;
+  --color-disabled-text: #adb5bd;
+  --color-category-logic: #b8b8b8;
+  --color-category-loops: #6fcc7d;
+  --color-category-math: #7d9ed9;
+  --color-category-text: #7dccaa;
+  --color-category-lists: #b399d9;
+  --color-category-variables: #d99999;
+  --color-category-functions: #ffcc66;
+  --color-border: #414652;
+  --color-border-strong: #6c757d;
+}

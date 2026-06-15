@@ -1,0 +1,98 @@
+[
+  {
+    "id": "intermediate-lesson-01",
+    "title": "Nesting Blocks",
+    "summary": "Learn to nest blocks inside each other for complex logic",
+    "estimatedMinutes": 15,
+    "unlocks": {
+      "blocks": [],
+      "keys": []
+    },
+    "preconditions": {
+      "blocks": [],
+      "keys": []
+    },
+    "steps": [],
+    "hints": []
+  },
+  {
+    "id": "intermediate-lesson-02",
+    "title": "Loops Within Loops",
+    "summary": "Create nested loops for repetitive patterns",
+    "estimatedMinutes": 20,
+    "unlocks": {
+      "blocks": [],
+      "keys": []
+    },
+    "preconditions": {
+      "blocks": [],
+      "keys": []
+    },
+    "steps": [],
+    "hints": []
+  },
+  {
+    "id": "intermediate-lesson-03",
+    "title": "If-Else Chains",
+    "summary": "Build complex conditional logic with multiple conditions",
+    "estimatedMinutes": 18,
+    "unlocks": {
+      "blocks": [],
+      "keys": []
+    },
+    "preconditions": {
+      "blocks": [],
+      "keys": []
+    },
+    "steps": [],
+    "hints": []
+  },
+  {
+    "id": "intermediate-lesson-04",
+    "title": "Multi-Stack Programs",
+    "summary": "Organize code across multiple independent stacks",
+    "estimatedMinutes": 20,
+    "unlocks": {
+      "blocks": [],
+      "keys": []
+    },
+    "preconditions": {
+      "blocks": [],
+      "keys": []
+    },
+    "steps": [],
+    "hints": []
+  },
+  {
+    "id": "intermediate-lesson-05",
+    "title": "Debugging Techniques",
+    "summary": "Learn to find and fix errors in your programs",
+    "estimatedMinutes": 25,
+    "unlocks": {
+      "blocks": [],
+      "keys": []
+    },
+    "preconditions": {
+      "blocks": [],
+      "keys": []
+    },
+    "steps": [],
+    "hints": []
+  },
+  {
+    "id": "intermediate-lesson-06",
+    "title": "Working with Lists",
+    "summary": "Store and manipulate collections of data",
+    "estimatedMinutes": 22,
+    "unlocks": {
+      "blocks": [],
+      "keys": []
+    },
+    "preconditions": {
+      "blocks": [],
+      "keys": []
+    },
+    "steps": [],
+    "hints": []
+  }
+]

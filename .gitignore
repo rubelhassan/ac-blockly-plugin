@@ -23,3 +23,5 @@ temp/
 
 *.iml
 .idea/
+*.xlsx
+.~lock.*

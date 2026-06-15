@@ -21,7 +21,7 @@
     <script type="module" src="./js/instructions_overlay.js"></script>
     <script src="./js/main.js"></script>
 </head>
-<body onload="initWorkspace()">
+<body>
   <div id="root">
     <nav class="navbar">
         <div class="logo">
@@ -29,7 +29,12 @@
             <h1>EAF Blockly Prototype</h1>
         </div>
     </nav>
-    <div style="display: flex; height: 90%;">
+    <main class="editor-region" aria-label="Blockly editor">
+      <div class="editor-row">
+        <!-- Heading for screen-reader heading navigation. The canvas below is a
+             role="application" region; this off-screen h2 gives heading-nav users
+             a jump target for it without altering the visual layout. -->
+        <h2 class="sr-only">Workspace</h2>
         <div id="blocklyApp"
              role="application"
              tabindex="0"
@@ -48,6 +53,52 @@
                 <button id="runButton" class="run-button" data-run>
                     Run <i class="fas fa-play-circle"></i>
                 </button>
+
+                <!-- Consolidated menu: Modes, Keyboard tutorial, settings.
+                     Navigated with W/S (up/down), D (open submenu), A (back),
+                     Enter (select), Escape (close). See app-menu.js. -->
+                <div class="app-menu" id="appMenu">
+                    <button id="appMenuTrigger" class="menu-button"
+                            aria-haspopup="true" aria-expanded="false" aria-controls="appMenuPanel"
+                            title="Menu"
+                            aria-label="Open menu with modes, keyboard tutorial, and settings">
+                        <i class="fas fa-bars" aria-hidden="true"></i>
+                        <span class="sr-only">Menu</span>
+                    </button>
+                    <div id="appMenuPanel" class="menu-panel" hidden role="group" aria-label="Main menu">
+                        <div class="menu-row">
+                            <button type="button" class="menu-item" data-submenu="modesSubmenu"
+                                    aria-haspopup="true" aria-expanded="false" aria-controls="modesSubmenu">
+                                <span class="menu-item__label">Modes</span>
+                                <span class="menu-item__chev" aria-hidden="true">›</span>
+                            </button>
+                            <div id="modesSubmenu" class="submenu" hidden role="group" aria-label="Modes">
+                                <button type="button" class="menu-item" data-mode="beginner">
+                                    <span class="menu-item__label">Beginner</span>
+                                </button>
+                                <button type="button" class="menu-item" data-mode="intermediate">
+                                    <span class="menu-item__label">Intermediate</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="menu-row">
+                            <button type="button" class="menu-item" id="menuKeyboardTutorial">
+                                <span class="menu-item__label">Keyboard tutorial</span>
+                            </button>
+                        </div>
+                        <div class="menu-row">
+                            <button type="button" class="menu-item" data-setting="screen">
+                                <span class="menu-item__label">Screen settings</span>
+                            </button>
+                        </div>
+                        <div class="menu-row">
+                            <button type="button" class="menu-item" data-setting="sound">
+                                <span class="menu-item__label">Sound settings</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <label class="sr-only" for="programSelect">Choose a program</label>
                 <select id="programSelect" class="program-dropdown">
                     <option value="">None — select a program…</option>
@@ -64,7 +115,7 @@
             <!-- Output panel -->
             <section class="output-container">
                 <div class="output-header">
-                    <h3>Output</h3>
+                    <h2>Output</h2>
                 </div>
                 <div id="outputPanel" class="output-content" data-output="line" aria-describedby="blockReader" aria-label="Output panel">
                     <!-- Output lines will be appended here dynamically -->
@@ -74,7 +125,7 @@
             <!-- Code panel -->
             <div class="code-container">
                 <div class="code-header">
-                    <h3 id="codeHeader">Code</h3>
+                    <h2 id="codeHeader">Code</h2>
                     <label class="sr-only" for="languageSelect">Language</label>
                     <select id="languageSelect" class="program-dropdown program-dropdown--sm">
                         <option value="javascript">JavaScript</option>
@@ -88,7 +139,11 @@
                 <pre id="codeOutput" class="prettyprint" style="border: none"><code class="language-javascript"></code></pre>
             </div>
         </div>
-    </div>
+      </div>
+    </main>
   </div>
+  <script src="./js/tutorial-init.js"></script>
+  <script type="module" src="./js/keyboard-trainer-init.js"></script>
+  <script type="module" src="./js/app-menu.js"></script>
 </body>
 </html>

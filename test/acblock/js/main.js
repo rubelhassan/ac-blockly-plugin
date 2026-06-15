@@ -134,6 +134,11 @@ function initWorkspace() {
     nav.init();
     nav.addWorkspace(workspace);
 
+    // Signal that the workspace is injected and keyboard nav is registered, so
+    // listeners (e.g. the keyboard-trainer module) can speak the startup
+    // instruction at the moment it becomes actionable.
+    document.dispatchEvent(new CustomEvent('acblock:workspace-ready'));
+
     const keyOverlay = new KeyOverlay({ hideDelayMs: 5000 });
     keyOverlay.attach();
 

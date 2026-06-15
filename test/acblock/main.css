@@ -1,9 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap');
 
 /* Base */
+/* UI text uses Roboto (Blockly's own typeface) for legibility; the code and
+   output panels keep IBM Plex Mono via their own explicit rules below. */
 body {
     background-color: #f4f4f4;
-    font-family: 'IBM Plex Mono', monospace !important;
+    font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
 
 select, option, select:focus, option:hover {
@@ -15,6 +18,32 @@ select, option, select:focus, option:hover {
     padding: 0 1rem;
     width: 90%;
     height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Editor-first region: the real Blockly workspace sits at the top so BVI
+   users land on it without tabbing past chrome. It fills the space left by the
+   navbar. */
+.editor-region {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+}
+
+.editor-region__title {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.editor-row {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    gap: 12px;
 }
 
 /* Left workspace + Right execution panel */
@@ -23,12 +52,187 @@ select, option, select:focus, option:hover {
     height: 100%;
 }
 
+/* ==================== App menu (hamburger) ==================== */
+.app-menu {
+    position: relative;
+    flex: 0 0 auto;
+    display: inline-flex;
+}
+
+.menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 40px;
+    height: 32px;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    background: #fff;
+    color: #1a73e8;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.menu-button:hover {
+    background: #e8f0fe;
+    border-color: #d2e3fc;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.menu-button:focus-visible {
+    outline: 2px solid #1967d2;
+    outline-offset: 2px;
+}
+
+.menu-button i {
+    font-size: 1.2em;
+}
+
+/* Dropdown panel anchored under the trigger */
+.menu-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 1000;
+    min-width: 220px;
+    padding: 6px;
+    background: #fff;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+}
+
+.menu-panel[hidden] {
+    display: none;
+}
+
+.menu-row {
+    position: relative;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 12px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #212529;
+    font-size: 0.95rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.12s ease;
+}
+
+.menu-item:hover {
+    background: #f1f3f4;
+}
+
+.menu-item:focus-visible {
+    outline: 2px solid #1967d2;
+    outline-offset: -2px;
+    background: #e8f0fe;
+}
+
+.menu-item__chev {
+    color: #5f6368;
+    font-size: 1.1em;
+    line-height: 1;
+}
+
+/* Submenu flies out to the right of its parent row */
+.submenu {
+    position: absolute;
+    top: -6px;
+    left: calc(100% + 4px);
+    min-width: 200px;
+    padding: 6px;
+    background: #fff;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+}
+
+.submenu[hidden] {
+    display: none;
+}
+
+/* On narrow screens, drop the submenu below its parent instead of beside it. */
+@media (max-width: 700px) {
+    .submenu {
+        position: static;
+        left: auto;
+        top: auto;
+        margin-top: 4px;
+        box-shadow: none;
+        border-left: 3px solid #e0e0e0;
+        border-radius: 0 0 6px 6px;
+    }
+}
+
 /* Navbar */
 .navbar {
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 15px 20px;
+    position: relative;
+}
+
+/* Icon-only button that sits inline in the exec-header beside the keyboard and
+   info icons. The visible label is hidden; the aria-label/title carry it for
+   screen readers and tooltips. */
+.trainer-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: 40px;
+    height: 32px;
+    padding: 0 12px;
+    padding-top: 2px;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    background: #fff;
+    color: #1a73e8;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.trainer-button:hover {
+    background: #e8f0fe;
+    border: 1px solid #d2e3fc;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.trainer-button:active {
+    transform: scale(0.95);
+    background: #d2e3fc;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.trainer-button:focus-visible {
+    outline: 2px solid #1967d2;
+    outline-offset: 2px;
+}
+
+.trainer-button i {
+    font-size: 1.3em;
+}
+
+.trainer-button span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
 }
 .navbar .logo {
     display: flex;
@@ -170,8 +374,14 @@ select, option, select:focus, option:hover {
 
 .exec-header #runButton {
     flex: 0 0 auto;
-    margin-right: auto; /* Push everything else to the right */
     min-width: 70px; /* Ensure minimum width */
+}
+
+/* Keep the menu next to Run on the left; the auto margin pushes the program
+   picker and icon buttons to the right. This also leaves room for the menu
+   panel and its right-flyout submenu to open without clipping the viewport. */
+.exec-header .app-menu {
+    margin-right: auto;
 }
 
 .exec-header #programSelect {
@@ -240,7 +450,7 @@ select, option, select:focus, option:hover {
     background: #fafafa;
 }
 
-.output-header h3 {
+.output-header h2 {
     margin: 0;
     font-size: 0.95rem;
     font-weight: 600;
@@ -328,7 +538,7 @@ select, option, select:focus, option:hover {
     background: #fafafa;
 }
 
-.code-header h3 {
+.code-header h2 {
     margin: 0;
     font-size: 0.95rem;
     font-weight: 600;
