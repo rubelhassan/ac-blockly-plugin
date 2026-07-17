@@ -244,6 +244,11 @@ export const SHORTCUT_HELP_ROWS = [
     keys: ['MOD', 'Shift', 'K'],
     title: 'Enable/disable keyboard accessibility',
     sr: 'Shortcut keys Command (Mac) or Control (Windows) plus Shift plus K. Enable or disable keyboard accessibility.'
-  }
+  },
+  {
+    keys: ['Shift', 'M'],
+    title: 'Toggle audio cues on/off',
+    sr: 'Shortcut keys Shift plus M. Toggle audio cue sounds on or off.'
+  },
 ];
 

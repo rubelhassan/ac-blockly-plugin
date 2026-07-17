@@ -22,12 +22,11 @@ export class Speech {
     update(text) {
         console.log("Speech: " + text);
         this.clearPreviousSpeeches();
-        // Schedule single DOM change so screen reader announce exactly once
         const speak = () => {
-            const filler   = this.toggle ? ' ' : '\u200B';  // ensure diff
+            const filler   = this.toggle ? ' ' : '\u200B';
             this.toggle    = !this.toggle;
             const reader   = document.getElementById('blockReader');
-            reader.textContent = '';              // reset text
+            reader.textContent = '';
             reader.textContent = `${text}${filler}`;
         };
         const id = requestAnimationFrame(speak);
@@ -69,6 +68,9 @@ export class Speech {
             movement === Constants.SHORTCUT_NAMES.LAYER_IN ||
             movement === Constants.SHORTCUT_NAMES.LAYER_OUT);
 
+        // ──────────────────────────────────────────────
+        // EDIT MODE path — always detailed (unchanged)
+        // ──────────────────────────────────────────────
         if (editMode && curNode) {
             let placement = 'unknown connection';
             switch (curNode.getType()) {
@@ -109,7 +111,6 @@ export class Speech {
                     container = detectedContainer;
                 }
 
-                // fallback get direct parent
                 if (!container && baseBlock && baseBlock.getParent()) {
                     container = baseBlock.getParent();
                 }
@@ -139,7 +140,6 @@ export class Speech {
             const blkLabel = blk ? this.friendlyName(blk) : 'block';
             let {container, _} = this.containerInfo?.(blk) || {};
 
-            // surrounding block is direct parent
             if (!container && blk && blk.getParent()) {
                 container = blk.getParent();
             }
@@ -152,7 +152,7 @@ export class Speech {
             }
         }
 
-        // add speech for container‑type blocks
+        // add speech for container-type blocks
         if (this.getFirstStatementConnection(blockSvg)) {
             outStr = `container block ${outStr}`;
         }
@@ -162,8 +162,8 @@ export class Speech {
 
 
     /**
-     * Convert a block  into a friendly spoken phrase.
-     * @param {!Blockly.Block} blk  A **BlockSvg** (workspace) or **Block** (fly‑out)
+     * Convert a block into a friendly spoken phrase.
+     * @param {!Blockly.Block} blk  A BlockSvg (workspace) or Block (flyout)
      * @returns {string}
      */
      blockToText(blk) {
@@ -191,7 +191,7 @@ export class Speech {
         }
 
         const disabledPrefix = '';
-        const type= blk.type;
+        const type = blk.type;
 
         switch (type) {
             // LOGIC
@@ -199,7 +199,7 @@ export class Speech {
                 const cond = inputsPhrase(blk, 'IF0', '(A)');
                 return `${disabledPrefix}if ${cond} then`;
             }
-            case 'logic_compare': { // (A) equals (B)  OR  1 = 2
+            case 'logic_compare': {
                 const opWord = {
                     EQ  : 'equals',
                     NEQ : 'does not equal',
@@ -212,19 +212,18 @@ export class Speech {
                 const right = inputsPhrase(blk, 'B', '(B)');
                 return `${disabledPrefix}${left} ${opWord} ${right}`;
             }
-            case 'logic_operation': {          // (A) and (B)
+            case 'logic_operation': {
                 const op = fieldPhrase(blk, 'OP', 'and').toLowerCase();
-                return `${disabledPrefix}${inputsPhrase(blk,'A','(A)')} 
-                ${op} ${inputsPhrase(blk,'B','(B)')}`;
+                return `${disabledPrefix}${inputsPhrase(blk,'A','(A)')} ${op} ${inputsPhrase(blk,'B','(B)')}`;
             }
             case 'logic_negate':
                 return `${disabledPrefix}not ${inputsPhrase(blk, 'BOOL', '(condition)')}`;
             case 'logic_boolean':
                 return `${disabledPrefix}${fieldPhrase(blk, 'BOOL', 'true')}`;
             case 'logic_ternary': {
-                const test= inputsPhrase(blk,'IF','(test)');
-                const ifThen= inputsPhrase(blk,'THEN','(A)');
-                const ifElse= inputsPhrase(blk,'ELSE','(B)');
+                const test = inputsPhrase(blk,'IF','(test)');
+                const ifThen = inputsPhrase(blk,'THEN','(A)');
+                const ifElse = inputsPhrase(blk,'ELSE','(B)');
                 return `${disabledPrefix}if ${test} then ${ifThen} else ${ifElse}`;
             }
             // LOOPS
@@ -253,19 +252,16 @@ export class Speech {
                 const sym = {
                     ADD : '+', MINUS : '-', MULTIPLY : '×', DIVIDE : '÷', POWER : '^'
                 }[fieldPhrase(blk,'OP')] || fieldPhrase(blk,'OP');
-                return `${disabledPrefix}${inputsPhrase(blk,'A','(A)')} 
-                ${sym} ${inputsPhrase(blk,'B','(B)')}`;
+                return `${disabledPrefix}${inputsPhrase(blk,'A','(A)')} ${sym} ${inputsPhrase(blk,'B','(B)')}`;
             }
             case 'math_single': {
                 const op = fieldPhrase(blk,'OP','square root of');
                 return `${disabledPrefix}${op} ${inputsPhrase(blk,'NUM','(A)')}`;
             }
             case 'math_modulo':
-                return `${disabledPrefix}remainder of ${inputsPhrase(blk,'DIVIDEND','(A)')} 
-                divided by ${inputsPhrase(blk,'DIVISOR','(B)')}`;
+                return `${disabledPrefix}remainder of ${inputsPhrase(blk,'DIVIDEND','(A)')} divided by ${inputsPhrase(blk,'DIVISOR','(B)')}`;
             case 'math_random_int':
-                return `${disabledPrefix}random integer from ${inputsPhrase(blk,'FROM','(A)')} 
-                to ${inputsPhrase(blk,'TO','(B)')}`;
+                return `${disabledPrefix}random integer from ${inputsPhrase(blk,'FROM','(A)')} to ${inputsPhrase(blk,'TO','(B)')}`;
             case 'math_random_float':
                 return `${disabledPrefix}random fraction`;
             // TEXT
@@ -292,8 +288,7 @@ export class Speech {
             case 'variables_get':
                 return `${disabledPrefix}get variable ${fieldPhrase(blk,'VAR','name')}`;
             case 'variables_set':
-                return `${disabledPrefix}set variable ${fieldPhrase(blk,'VAR','name')} 
-                to ${inputsPhrase(blk,'VALUE','(value)')}`;
+                return `${disabledPrefix}set variable ${fieldPhrase(blk,'VAR','name')} to ${inputsPhrase(blk,'VALUE','(value)')}`;
             default:
                 return `${disabledPrefix}${type}`;
         }
@@ -343,7 +338,7 @@ export class Speech {
         if (!category) return;
         const name = (typeof category.getName === 'function')
             ? category.getName()
-            : category.name_;          // fallback
+            : category.name_;
 
         let prefix;
         switch (direction) {
@@ -390,7 +385,6 @@ export class Speech {
                 const blockSvg = node.getSourceBlock();
                 disabledPrefix = blockSvg.isEnabled && !blockSvg.isEnabled() ? 'disabled ' : '';
                 label = this.blockToText(blockSvg);
-                // fallback
                 if (!label || label.toLowerCase().startsWith('custom')) {
                     label =
                         blockSvg.toString().trim() ||
@@ -409,13 +403,13 @@ export class Speech {
                 ? categoryObj.getName()
                 : (categoryObj.name_ || '');
         }
-        // fallback
         if (!categoryName) {
             const labelEl = document.querySelector(
                 '.blocklyTreeSelected .blocklyTreeRowContentContainer .blocklyTreeLabel'
             );
             if (labelEl) categoryName = labelEl.textContent.trim();
         }
+
         const dirstrt = (direction === Constants.SHORTCUT_NAMES.PREVIOUS)
             ? 'back'
             : '';
@@ -437,6 +431,7 @@ export class Speech {
     };
 
     announceInsertedBlock(newBlock, originalBlock, dirKey='') {
+        // Unchanged — action confirmations are always full detail
         if (!newBlock) {
             return;
         }
@@ -462,6 +457,7 @@ export class Speech {
 
 
     announceMark(node, originalBlock = null, dirKey = '') {
+        // Unchanged — mark is an explicit action, always needs confirmation
         if (!node) {
             return;
         }
@@ -517,6 +513,7 @@ export class Speech {
     }
 
     containerInfo(block) {
+        // Unchanged — this is a data method, not a speech method
         if (!block) {
             return {
                 surrounding: null,
@@ -525,11 +522,10 @@ export class Speech {
             };
         }
 
-        const root = block.getRootBlock(); // top-block of current stack
-        const stacks= block.workspace.getTopBlocks(true); // array of top stack blocks in visual order
+        const root = block.getRootBlock();
+        const stacks = block.workspace.getTopBlocks(true);
         const stackIndex = stacks.indexOf(root) + 1 || null;
 
-        // value block then return with attached parent
         if (block.outputConnection && block.outputConnection.isConnected()) {
             const parent = block.outputConnection.targetBlock();
             return {
@@ -539,28 +535,24 @@ export class Speech {
             };
         }
 
-        // statement block of a container block
         if (block.getPreviousBlock()) {
-            // walks up upward until joining connection to parent is found
             let child = block;
             let parent = child.getParent();
             while (parent) {
-                const prevConn= child.previousConnection;
+                const prevConn = child.previousConnection;
                 if (prevConn && prevConn.targetConnection &&
                     prevConn.targetConnection.type === Blockly.NEXT_STATEMENT) {
-                    break; // found container
+                    break;
                 }
                 child  = parent;
                 parent = parent.getParent();
             }
 
             if (parent) {
-                // first block plugged into that statement input
                 const stmtInput = parent.inputList.find(
                     inp => inp.connection && inp.connection.type === Blockly.NEXT_STATEMENT);
                 let idx = 0;
                 let firstBlock = stmtInput && stmtInput.connection ? stmtInput.connection.targetBlock() : null;
-                // traverse and count position until current block not found
                 while (firstBlock) {
                     if (!firstBlock.outputConnection && !firstBlock.isShadow()) {
                         idx++;
@@ -572,7 +564,6 @@ export class Speech {
             }
         }
 
-        // only block in stack maybe
         return {
             surrounding: block.getParent() || null,
             indexInside: null,
@@ -585,7 +576,7 @@ export class Speech {
         }
 
         const srcBlock = node.getSourceBlock && node.getSourceBlock();
-        const containerBlockInfo= this.containerInfo(srcBlock);
+        const containerBlockInfo = this.containerInfo(srcBlock);
         let phrase  = '';
 
         switch (node.getType()) {
@@ -624,13 +615,14 @@ export class Speech {
             }
         }
 
-        // todo: add stack index for now, when stack labeling code merge change here
         if (containerBlockInfo.stackIndex != null) {
-            phrase += `, under the ${this.ordinalWord(containerBlockInfo.stackIndex)}) stack`;
+            // Also fixed the stray ")" bug from the original
+            phrase += `, under the ${this.ordinalWord(containerBlockInfo.stackIndex)} stack`;
         }
 
         this.update(phrase);
     }
+
 
     announceEditModeToggle(editMode, curNode) {
         if (editMode === null) {
