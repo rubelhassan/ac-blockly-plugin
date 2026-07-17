@@ -18,6 +18,7 @@ import {NavigationalHint} from "./util/navigational_hint";
 import {ZoomingControl} from './util/zooming_controls';
 import {FlyoutCompatibilityManager} from "./util/flyout_compatibility_manager"
 import {WorkspaceContainerFilter} from "./util/workspace_flyout_manager";
+import {AudioCue} from "./audio/audio_cue";
 
 /**
  * Class for registering shortcuts for keyboard navigation.
@@ -54,6 +55,9 @@ export class NavigationController {
       this.accessibleCursor.setSpeechListener(this.speech);
       this.shortcutAssistance = new ShortcutAssistance(this.speech);
       this.navHint = new NavigationalHint({ speech: this.speech });
+      this.audioCue = new AudioCue();
+      console.log('AudioCue initialized:', this.audioCue);
+
     }
     this.keyHintListener = null;
     this.zooming = new ZoomingControl(this.speech);
@@ -96,13 +100,55 @@ export class NavigationController {
       const origMethod = targetObj[method];
       if (typeof origMethod !== 'function') return;
       targetObj[method] = (...args) => {
-        const previousNode = cursor.getCurNode?.();
-        const result = origMethod.apply(targetObj, args);
-        const currentNode = cursor.getCurNode?.();
-        if (previousNode !== currentNode) {
-          this.emitKeyHints(workspace);
+        // RE-ENTRANCY GUARD: if we're already handling a cue from an
+        // outer call, just run the original method and fire NO cue.
+        // This stops internal getOutNode/isValidInNode checks from
+        // wrongly triggering the boundary buzz.
+        if (this._cueInProgress) {
+          return origMethod.apply(targetObj, args);
         }
-        return result;
+        this._cueInProgress = true;
+
+        try {
+          const previousNode = cursor.getCurNode?.();
+          const result = origMethod.apply(targetObj, args);
+          const currentNode = cursor.getCurNode?.();
+
+          if (previousNode !== currentNode) {
+            this.emitKeyHints(workspace);
+            AudioCue.debugNode(currentNode);
+            if (this.audioCue?.isEnabled()) {
+              const depth = AudioCue.getNodeDepth(currentNode);
+              const prevDepth = AudioCue.getNodeDepth(previousNode);
+              const block = AudioCue.getNodeBlock(currentNode);
+              switch (method) {
+                case 'next':
+                case 'prev':
+                  this.audioCue.playVerticalMove(depth, block);
+                  break;
+                case 'in':
+                  this.audioCue.playHorizontalMove(depth, 'right', block);
+                  break;
+                case 'out':
+                  this.audioCue.playHorizontalMove(depth, 'left', block);
+                  break;
+                case 'layerIn':
+                  this.audioCue.playLayerIn(prevDepth, depth, block);
+                  break;
+                case 'layerOut':
+                  this.audioCue.playLayerOut(prevDepth, depth, block);
+                  break;
+              }
+            }
+          } else if (previousNode === currentNode && method !== 'setCurNode') {
+            if (this.audioCue?.isEnabled()) {
+              this.audioCue.playBoundary();
+            }
+          }
+          return result;
+        } finally {
+          this._cueInProgress = false;
+        }
       };
     };
 
@@ -296,12 +342,14 @@ export class NavigationController {
             isHandled = this.fieldShortcutHandler(workspace, shortcut);
             if (!isHandled) {
               let node = workspace.getCursor().prev();
-              if (node?.getType() === Blockly.ASTNode.types.STACK) {
-                let stackLabel = getStackLabelFromStackNode(node, workspace);
-                this.speech.updateBlockReader(null, stackLabel ? node.getType() + " " +stackLabel : node.getType(), null, Constants.SHORTCUT_NAMES.LAYER_OUT, Constants.STATE.WORKSPACE);
-              } else {
-                this.speech.process(node, Constants.SHORTCUT_NAMES.PREVIOUS, Constants.STATE.WORKSPACE);
-              }
+              this._announceAfterSpearcon(() => {
+                if (node?.getType() === Blockly.ASTNode.types.STACK) {
+                  let stackLabel = getStackLabelFromStackNode(node, workspace);
+                  this.speech.updateBlockReader(null, stackLabel ? node.getType() + " " + stackLabel : node.getType(), null, Constants.SHORTCUT_NAMES.LAYER_OUT, Constants.STATE.WORKSPACE);
+                } else {
+                  this.speech.process(node, Constants.SHORTCUT_NAMES.PREVIOUS, Constants.STATE.WORKSPACE);
+                }
+              });
               isHandled = true;
             }
             return isHandled;
@@ -363,6 +411,8 @@ export class NavigationController {
         } else {
           this.navigation.enableKeyboardAccessibility(workspace);
           this.speech.update("Keyboard navigation enabled");
+          this.audioCue?.resumeIfSuspended();
+
         }
         return true;
       },
@@ -438,7 +488,6 @@ export class NavigationController {
     }
   }
 
-
   /**
    * Keyboard shortcut to go to the next location when in keyboard navigation
    * mode.
@@ -460,12 +509,14 @@ export class NavigationController {
             isHandled = this.fieldShortcutHandler(workspace, shortcut);
             if (!isHandled) {
               let node = workspace.getCursor().next();
-              if (node?.getType() === Blockly.ASTNode.types.STACK) {
-                let stackLabel = getStackLabelFromStackNode(node, workspace);
-                this.speech.updateBlockReader(null, stackLabel ? node.getType() + " " +stackLabel : node.getType(), null, Constants.SHORTCUT_NAMES.LAYER_OUT, Constants.STATE.WORKSPACE);
-              } else {
-                this.speech.process(node, Constants.SHORTCUT_NAMES.NEXT, Constants.STATE.WORKSPACE);
-              }
+              this._announceAfterSpearcon(() => {
+                if (node?.getType() === Blockly.ASTNode.types.STACK) {
+                  let stackLabel = getStackLabelFromStackNode(node, workspace);
+                  this.speech.updateBlockReader(null, stackLabel ? node.getType() + " " + stackLabel : node.getType(), null, Constants.SHORTCUT_NAMES.LAYER_OUT, Constants.STATE.WORKSPACE);
+                } else {
+                  this.speech.process(node, Constants.SHORTCUT_NAMES.NEXT, Constants.STATE.WORKSPACE);
+                }
+              });
               isHandled = true;
             }
             return isHandled;
@@ -507,6 +558,25 @@ export class NavigationController {
         Blockly.utils.KeyCodes.S,
         nextShortcut.name,
     );
+  }
+
+  registerCycleAudioMode() {
+    const shortcut = {
+      name: 'cycleAudioMode',
+      preconditionFn: (workspace) => workspace.keyboardAccessibilityMode,
+      callback: (workspace) => {
+        if (!this.audioCue) return false;
+        const mode = this.audioCue.cycleAudioMode();
+        this.speech.update(`Audio mode: ${mode}`);
+        return true;
+      },
+    };
+    Blockly.ShortcutRegistry.registry.register(shortcut);
+    const shiftJ = Blockly.ShortcutRegistry.registry.createSerializedKey(
+      Blockly.utils.KeyCodes.J,
+      [Blockly.utils.KeyCodes.SHIFT],
+    );
+    Blockly.ShortcutRegistry.registry.addKeyMapping(shiftJ, shortcut.name, true);
   }
 
   /**
@@ -610,12 +680,14 @@ export class NavigationController {
             isHandled = this.fieldShortcutHandler(workspace, shortcut);
             if (!isHandled) {
               let node = workspace.getCursor().layerIn();
-              if (node?.getType() === Blockly.ASTNode.types.STACK) {
-                let stackLabel = getStackLabelFromStackNode(node, workspace);
-                this.speech.updateBlockReader(null, stackLabel ? node.getType() + " " +stackLabel : node.getType(), null, Constants.SHORTCUT_NAMES.LAYER_OUT, Constants.STATE.WORKSPACE);
-              } else {
-                this.speech.process(node, Constants.SHORTCUT_NAMES.LAYER_IN, Constants.STATE.WORKSPACE);
-              }
+              this._announceAfterSpearcon(() => {
+                if (node?.getType() === Blockly.ASTNode.types.STACK) {
+                  let stackLabel = getStackLabelFromStackNode(node, workspace);
+                  this.speech.updateBlockReader(null, stackLabel ? node.getType() + " " + stackLabel : node.getType(), null, Constants.SHORTCUT_NAMES.LAYER_OUT, Constants.STATE.WORKSPACE);
+                } else {
+                  this.speech.process(node, Constants.SHORTCUT_NAMES.LAYER_IN, Constants.STATE.WORKSPACE);
+                }
+              });
               isHandled = true;
             }
             return isHandled;
@@ -659,12 +731,14 @@ export class NavigationController {
             isHandled = this.fieldShortcutHandler(workspace, shortcut);
             if (!isHandled) {
               let node = workspace.getCursor().layerOut();
-              if (node?.getType() === Blockly.ASTNode.types.STACK) {
-                let stackLabel = getStackLabelFromStackNode(node, workspace);
-                this.speech.updateBlockReader(null, node.getType() + " " +stackLabel ? node.getType() + " " + stackLabel : node.getType(), null, Constants.SHORTCUT_NAMES.LAYER_OUT, Constants.STATE.WORKSPACE);
-              } else {
-                this.speech.process(node, Constants.SHORTCUT_NAMES.LAYER_OUT, Constants.STATE.WORKSPACE);
-              }
+              this._announceAfterSpearcon(() => {
+                if (node?.getType() === Blockly.ASTNode.types.STACK) {
+                  let stackLabel = getStackLabelFromStackNode(node, workspace);
+                  this.speech.updateBlockReader(null, stackLabel ? node.getType() + " " + stackLabel : node.getType(), null, Constants.SHORTCUT_NAMES.LAYER_OUT, Constants.STATE.WORKSPACE);
+                } else {
+                  this.speech.process(node, Constants.SHORTCUT_NAMES.LAYER_OUT, Constants.STATE.WORKSPACE);
+                }
+              });
               isHandled = true;
             }
             return isHandled;
@@ -765,7 +839,7 @@ export class NavigationController {
                 let flyoutBlock = this.navigation.getFlyoutCursor(workspace).getCurNode()?.getSourceBlock();
                 if (flyoutBlock.isEnabled && !flyoutBlock.isEnabled()) {
                   const disabledBlockName = this.speech.friendlyName(flyoutBlock) || 'block';
-                  this.speech.update(`s${disabledBlockName} is disabled and cannot be inserted.`);
+                  this.speech.update(`${disabledBlockName} is disabled and cannot be inserted`);
                   return true;
                 }
                 const inserted = this.navigation.insertFromFlyout(workspace);
@@ -774,6 +848,7 @@ export class NavigationController {
                   return true;
                 }
                 const newBlock = workspace.getCursor().getCurNode();
+                this.audioCue?.playInsert();
                 this.speech.announceInsertedBlock(newBlock, originalBlock, dirKey);
                 break;
               case Blockly.ASTNode.types.BUTTON:
@@ -815,7 +890,15 @@ export class NavigationController {
         const editMode = this.accessibleCursor.toggleEditMode();
         const curNode = this.accessibleCursor.getCurNode();
         this.navigation.removeMark?.(workspace);
+
+        if (editMode === true) {
+          this.audioCue?.playEditModeEnter();
+        } else if (editMode === false) {
+          this.audioCue?.playEditModeExit();
+        }
+
         this.speech.announceEditModeToggle(editMode, curNode);
+        return true;  // fixes the missing return value bug
       },
     };
 
@@ -892,7 +975,7 @@ export class NavigationController {
             Blockly.Events.setGroup(groupId);
             this.navigation.disconnectBlocks(workspace);
             Blockly.Events.setGroup(false);
-
+            this.audioCue?.playDisconnect();
             this.speech.update(announcement);
             return true;
           default:
@@ -934,6 +1017,7 @@ export class NavigationController {
               this.navigation.focusFlyout(workspace);
             } else {
               this.navigation.focusToolbox(workspace);
+              this.audioCue?.playOpenToolbox();
               this.speech.announceCategory(workspace.getToolbox().getSelectedItem());
             }
             this.applyToolboxFilter(workspace);
@@ -1009,6 +1093,7 @@ export class NavigationController {
         switch (this.navigation.getState(workspace)) {
           case Constants.STATE.FLYOUT:
             this.navigation.focusWorkspace(workspace);
+            this.audioCue?.playCloseToolbox();
             this.navigation.removeMark(workspace);
             if (prevWsNode) {
               console.log("working flyout")
@@ -1018,6 +1103,7 @@ export class NavigationController {
             return true;
           case Constants.STATE.TOOLBOX:
             this.navigation.focusWorkspace(workspace);
+            this.audioCue?.playCloseToolbox();
             this.navigation.removeMark(workspace);
             if (prevWsNode) {
               console.log("working tool")
@@ -1353,8 +1439,23 @@ export class NavigationController {
       callback: (workspace) => {
         const runButton = document.querySelector('[data-run]');
         if (runButton && !runButton.disabled) {
+          this.audioCue?.playRunStart();
           runButton.click();
-          this.announceToScreenReader('Running program');
+
+          // After execution, announce result with audio feedback
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              const outputPanel = document.querySelector('[data-output]');
+              const hasError = outputPanel?.querySelector('.output-line-content')
+                ?.textContent?.toLowerCase().startsWith('error');
+              if (hasError) {
+                this.audioCue?.playRunError();
+              } else {
+                this.audioCue?.playRunSuccess();
+              }
+              this.announceToScreenReader('Program finished');
+            }, 150);
+          });
           return true;
         }
         return false;
@@ -1592,6 +1693,7 @@ export class NavigationController {
         cursor?.setEditingBlock?.(node);
 
         // TODO: make speech more intuitive
+        this.audioCue?.playAttach();
         this.speech.update(`Attached ${this.speech.blockToText(blockToAttach) || 'block'}.`);
         return true;
       }
@@ -1759,6 +1861,7 @@ export class NavigationController {
           }
 
           if (focusNode) cursor?.setCurNode(focusNode);
+          this.audioCue?.playCut();
           this.speech.update?.(
               `Detached ${this.speech.blockToText(targetBlock) || 'block'}. ${announce} ` +
               `Enter edit mode on the desired block, navigate to a connection, then press Ctrl+V to attach.`
@@ -1830,6 +1933,7 @@ export class NavigationController {
         this.navigation.moveCursorOnBlockDelete(workspace, sourceBlock);
         sourceBlock.checkAndDelete();
         let blockLabel = this.speech.friendlyName(sourceBlock) || 'block';
+        this.audioCue?.playDelete();
         this.speech.update("Deleted " + blockLabel);
 
         return true;
@@ -2316,6 +2420,7 @@ export class NavigationController {
         this.detachedWorkspace = null;
 
         // update speech
+        this.audioCue?.playUndo();
         this.speech?.update?.('Undo performed on previous action');
 
         // prevent browser event
@@ -2387,6 +2492,8 @@ export class NavigationController {
     this.registerZoomIn();
     this.registerZoomOut();
     this.registerZoomReset();
+    this.registerToggleAudioCues();
+    this.registerCycleAudioMode();
   }
 
 
@@ -2711,6 +2818,79 @@ export class NavigationController {
     const blockReader = document.getElementById('blockReader');
     if (blockReader) {
       blockReader.textContent = message;
+    }
+  }
+
+  /**
+   * Shift+M — Toggle audio cues on/off.
+   * @protected
+   */
+  registerToggleAudioCues() {
+    console.log('Shift+M pressed, audioCue:', this.audioCue);
+    const toggleAudioCueShortcut = {
+      name: 'toggleAudioCues',
+      preconditionFn: (workspace) => workspace.keyboardAccessibilityMode,
+      callback: (workspace) => {
+        if (!this.audioCue) return false;
+        const newState = !this.audioCue.isEnabled();
+        this.audioCue.setEnabled(newState);
+        if (newState) {
+          this.audioCue.resumeIfSuspended();
+        }
+        this.speech.update(
+          newState ? 'Audio cues enabled' : 'Audio cues disabled'
+        );
+        return true;
+      },
+    };
+
+    Blockly.ShortcutRegistry.registry.register(toggleAudioCueShortcut);
+    const shiftM = Blockly.ShortcutRegistry.registry.createSerializedKey(
+      Blockly.utils.KeyCodes.M,
+      [Blockly.utils.KeyCodes.SHIFT],
+    );
+    Blockly.ShortcutRegistry.registry.addKeyMapping(
+      shiftM,
+      toggleAudioCueShortcut.name,
+      true,
+    );
+  }
+
+  /**
+   * Speaks the full block detail via aria-live (which VoiceOver reads),
+   * but delayed so it fires AFTER the spearcon. Cancels any pending
+   * announcement so fast navigation doesn't queue stale ones.
+   */
+  _announceAfterSpearcon(fn) {
+    // Cancel a pending announcement from a previous move
+    clearTimeout(this._pendingAnnounce);
+
+    // Interrupt any announcement VoiceOver is currently reading by
+    // clearing the live region, so it doesn't finish the old block
+    // after the user has already moved on.
+    this._clearBlockReader();
+
+    const mode = this.audioCue?.getAudioMode?.() || 'earcon';
+
+    if (mode === 'earcon') {
+      fn();
+      return;
+    }
+
+    const delay = this.audioCue?.getSpearconAnnounceDelay?.() ?? 450;
+    this._pendingAnnounce = setTimeout(() => {
+      fn();
+    }, delay);
+  }
+
+  /**
+   * Clears the aria-live region so a screen reader stops reading a stale
+   * announcement when the user navigates away before it finished.
+   */
+  _clearBlockReader() {
+    const blockReader = document.getElementById('blockReader');
+    if (blockReader) {
+      blockReader.textContent = '';
     }
   }
 }

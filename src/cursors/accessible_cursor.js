@@ -69,11 +69,19 @@ export class AccessibleCursor extends Blockly.Cursor {
 
     getCurrentBlock() {
         let curNode = this.getCurNode();
-        if (curNode && curNode.getType() === ASTNode.types.BLOCK) {
+        if (!curNode) return null;
+        if (curNode.getType() === ASTNode.types.BLOCK) {
             return curNode;
-        } else {
-            return null;
         }
+        // Stack nodes point to the top block — convert so edit mode can be entered
+        // after Alt+B navigation or after Ctrl+X cut (both land on STACK nodes).
+        if (curNode.getType() === ASTNode.types.STACK) {
+            const topBlock = curNode.getLocation();
+            if (topBlock) {
+                return Blockly.ASTNode.createBlockNode(topBlock);
+            }
+        }
+        return null;
     }
 
     isValidConnectionNode(node) {
